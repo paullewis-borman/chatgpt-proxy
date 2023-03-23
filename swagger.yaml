@@ -1,0 +1,283 @@
+openapi: 3.0.3
+info:
+  version: 1.0.0
+  title: Webgraffiti API
+  description: REST API for Listing, Saving and Deleting Speech bubbles on Webgraffiti
+servers:
+  - url: https://webgraffiti.herokuapp.com/
+    description: Webgraffiti server
+paths:
+  /getspeechbubbles:
+    get:
+      summary: Get speech bubbles
+      description: Returns speech bubbles for a given URL
+      parameters:
+        - name: url
+          in: query
+          description: URL to fetch speech bubbles for
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Speech bubbles fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether the request was successful
+                  websiteData:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        description: The URL of the website
+                      images:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            imageURL:
+                              type: string
+                              description: The URL of the image
+                            dateCreated:
+                              type: string
+                              format: date-time
+                              description: The date and time the image was created
+                            userid:
+                              type: string
+                              description: The ID of the user who created the image
+                            speechBubbles:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  text:
+                                    type: string
+                                    description: The text of the speech bubble
+        '404':
+          description: No speech bubbles found for the provided URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether the request was successful
+                  message:
+                    type: string
+                    description: Error message
+        '500':
+          description: Error fetching speech bubbles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether the request was successful
+                  message:
+                    type: string
+                    description: Error message
+                  error:
+                    type: string
+                    description: Detailed error message
+
+
+  /deletespeechbubble:
+    delete:
+      summary: Delete speech bubble
+      description: Deletes a speech bubble by ID
+      parameters:
+        - in: query
+          name: url
+          description: URL of the website that contains the speech bubble
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: uid
+          description: ID of the speech bubble to delete
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: userid
+          description: ID of the user who created the speech bubble
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Speech bubble deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether the request was successful
+                  message:
+                    type: string
+                    description: Success message
+        '403':
+          description: User not authorized to delete this speech bubble
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether the request was successful
+                  message:
+                    type: string
+                    description: Error message
+        '404':
+          description: Speech bubble not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether the request was successful
+                  message:
+                    type: string
+                    description: Error message
+        '500':
+          description: Error deleting speech bubble
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Whether the request was successful
+                  message:
+                    type: string
+                    description: Error message
+                  error:
+                    type: string
+                    description: Detailed error message
+
+
+  /savespeechbubble:
+    post:
+      summary: Save speech bubble
+      description: Saves a speech bubble for a given image on a website
+      requestBody:
+        description: The speech bubble to save
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - websiteData
+              properties:
+                websiteData:
+                  type: object
+                  required:
+                    - url
+                    - images
+                  properties:
+                    url:
+                      type: string
+                      description: The URL of the website
+                    images:
+                      type: array
+                      items:
+                        type: object
+                        required:
+                          - imageURL
+                          - userid
+                          - speechBubbles
+                        properties:
+                          imageURL:
+                            type: string
+                            description: The URL of the image
+                          userid:
+                            type: string
+                            description: The ID of the user who created the image
+                          speechBubbles:
+                            type: array
+                            items:
+                              type: object
+                              required:
+                                - tailPos
+                                - text
+                                - xPos
+                                - yPos
+                                - uid
+                              properties:
+                                tailPos:
+                                  type: string
+                                  description: The position of the tail of the speech bubble on the image
+                                text:
+                                  type: string
+                                  description: The text of the speech bubble
+                                xPos:
+                                  type: integer
+                                  description: The x-coordinate of the speech bubble on the image
+                                yPos:
+                                  type: integer
+                                  description: The y-coordinate of the speech bubble on the image
+                                uid:
+                                  type: string
+                                  description: The unique ID of the speech bubble
+      responses:
+        '200':
+          description: Bubble saved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+                  website:
+                    type: object
+                    description: The saved website object
+        '400':
+          description: Error userid is required
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Error message
+        '403':
+          description: Error only the creator of the first bubble can update this image or add other bubbles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Error message
+        '500':
+          description: Error saving Bubble
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Error message
+                  error:
+                    type: string
+                    description: Detailed error message
